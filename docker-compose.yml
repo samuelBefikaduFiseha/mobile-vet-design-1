@@ -1,0 +1,25 @@
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: mobilevet-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: mobilevet
+      POSTGRES_PASSWORD: mobilevet
+      POSTGRES_DB: mobilevet
+      TZ: Africa/Addis_Ababa
+      PGTZ: Africa/Addis_Ababa
+    ports:
+      - "5433:5432"
+    volumes:
+      - mobilevet-data:/var/lib/postgresql/data
+      # Runs once, on first start with an empty volume (schema, then seed).
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mobilevet -d mobilevet"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  mobilevet-data:

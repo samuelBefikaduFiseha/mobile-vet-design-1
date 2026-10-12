@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X, PawPrint } from "lucide-react";
+import { Menu, X, PawPrint, LogIn, LayoutDashboard } from "lucide-react";
 
 const navLinks = [
   { href: "/", label: "Home" },
@@ -12,86 +12,66 @@ const navLinks = [
   { href: "/contact", label: "Contact" },
 ];
 
-export function Navbar() {
+export function Navbar({ signedIn = false }: { signedIn?: boolean }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
+  const account = signedIn
+    ? { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard }
+    : { href: "/login", label: "Sign in", icon: LogIn };
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md">
+    <header className="sticky top-0 z-50 border-b border-border bg-background/85 backdrop-blur-md">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
-          {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 group">
-            <PawPrint className="h-7 w-7 text-primary transition-transform group-hover:scale-110" />
-            <div className="flex flex-col">
-              <span className="text-lg font-bold tracking-tight text-foreground">
-                Mobile Vet
-              </span>
-              <span className="text-[10px] leading-none text-muted tracking-wider">
-                ሞባይል ቬት
-              </span>
-            </div>
+          <Link href="/" className="group flex items-center gap-2.5">
+            <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-white transition-transform group-hover:scale-105">
+              <PawPrint className="h-5 w-5" />
+            </span>
+            <span className="flex flex-col">
+              <span className="text-base font-semibold tracking-tight text-foreground">Mobile Vet</span>
+              <span className="text-[10px] leading-none tracking-wider text-muted">ሞባይል ቬት</span>
+            </span>
           </Link>
 
-          {/* Desktop nav */}
-          <nav className="hidden md:flex items-center gap-1">
+          <nav className="hidden items-center gap-1 md:flex">
             {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  pathname === link.href
-                    ? "text-primary bg-primary/10"
-                    : "text-muted hover:text-foreground hover:bg-card"
-                }`}
-              >
+              <Link key={link.href} href={link.href}
+                className={`rounded-lg px-3.5 py-2 text-sm font-medium transition-colors ${
+                  pathname === link.href ? "bg-primary-soft text-primary" : "text-muted hover:bg-surface hover:text-foreground"
+                }`}>
                 {link.label}
               </Link>
             ))}
-            <Link
-              href="/contact"
-              className="ml-2 px-4 py-2 rounded-lg text-sm font-semibold bg-primary text-background hover:bg-primary-hover transition-colors"
-            >
-              Partner with us
+            <Link href="/contact" className="btn-secondary ml-3">Partner with us</Link>
+            <Link href={account.href} className="btn-primary ml-1">
+              <account.icon className="h-4 w-4" />
+              {account.label}
             </Link>
           </nav>
 
-          {/* Mobile toggle */}
-          <button
-            className="md:hidden p-2 rounded-lg text-muted hover:text-foreground hover:bg-card transition-colors"
-            onClick={() => setMobileOpen(!mobileOpen)}
-            aria-label="Toggle menu"
-          >
+          <button className="icon-btn md:hidden" onClick={() => setMobileOpen(!mobileOpen)} aria-label="Toggle menu">
             {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
         </div>
       </div>
 
-      {/* Mobile menu */}
       {mobileOpen && (
-        <div className="md:hidden border-t border-border bg-background/95 backdrop-blur-md">
-          <div className="px-4 py-3 space-y-1">
+        <div className="border-t border-border bg-background md:hidden">
+          <div className="space-y-1 px-4 py-3">
             {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                onClick={() => setMobileOpen(false)}
-                className={`block px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                  pathname === link.href
-                    ? "text-primary bg-primary/10"
-                    : "text-muted hover:text-foreground hover:bg-card"
-                }`}
-              >
+              <Link key={link.href} href={link.href} onClick={() => setMobileOpen(false)}
+                className={`block rounded-lg px-3 py-2.5 text-sm font-medium ${
+                  pathname === link.href ? "bg-primary-soft text-primary" : "text-muted hover:bg-surface hover:text-foreground"
+                }`}>
                 {link.label}
               </Link>
             ))}
-            <Link
-              href="/contact"
-              onClick={() => setMobileOpen(false)}
-              className="block mt-2 px-3 py-2.5 rounded-lg text-sm font-semibold bg-primary text-background text-center hover:bg-primary-hover transition-colors"
-            >
-              Partner with us
-            </Link>
+            <div className="grid grid-cols-2 gap-2 pt-2">
+              <Link href="/contact" onClick={() => setMobileOpen(false)} className="btn-secondary">Partner with us</Link>
+              <Link href={account.href} onClick={() => setMobileOpen(false)} className="btn-primary">
+                <account.icon className="h-4 w-4" /> {account.label}
+              </Link>
+            </div>
           </div>
         </div>
       )}

@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { Navbar } from "@/components/Navbar";
-import { Footer } from "@/components/Footer";
+import { Toaster } from "@/components/client";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -34,8 +33,7 @@ export const metadata: Metadata = {
     title: "Mobile Vet | Smart Livestock Protection for Ethiopia",
     description:
       "Protecting Ethiopia's livestock, securing pastoralist futures through satellite intelligence and smart tracking.",
-    url: "https://mobile-vet.vercel.app",
-    siteName: "Mobile Vet",
+        siteName: "Mobile Vet",
     locale: "en_US",
     type: "website",
   },
@@ -52,9 +50,8 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
-        <Navbar />
-        <main className="flex-1">{children}</main>
-        <Footer />
+        {children}
+        <Toaster />
       </body>
     </html>
   );

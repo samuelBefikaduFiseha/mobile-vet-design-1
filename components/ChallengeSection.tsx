@@ -13,7 +13,7 @@ const challenges = [
     title: "Disease Outbreaks",
     description:
       "Limited veterinary access and poor traceability allow diseases to spread rapidly through herds with devastating economic impact.",
-    accent: "text-red-400",
+    accent: "text-red-700",
   },
   {
     icon: Fingerprint,
@@ -27,7 +27,7 @@ const challenges = [
     title: "Financial Exclusion",
     description:
       "Banks and insurers cannot assess livestock value or risk, leaving pastoralists without collateral-based loans or insurance.",
-    accent: "text-yellow-400",
+    accent: "text-yellow-700",
   },
 ];
 
@@ -40,7 +40,7 @@ export function ChallengeSection() {
             The Challenge
           </span>
           <h2 className="mt-3 text-3xl sm:text-4xl font-bold text-foreground tracking-tight">
-            Ethiopia's livestock sector faces critical threats
+            Ethiopia&apos;s livestock sector faces critical threats
           </h2>
           <p className="mt-4 text-muted leading-relaxed">
             Recurring droughts, disease outbreaks and a lack of digital records put

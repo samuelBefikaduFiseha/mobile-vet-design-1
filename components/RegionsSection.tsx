@@ -1,78 +1,51 @@
-const regions = [
-  {
-    name: "Borena Zone",
-    badge: "High Priority",
-    tag: "Pastoralist",
-    description:
-      "Recently affected by severe drought causing massive livestock losses. High urgency for early warning systems and restocking support.",
-    color: "from-orange-500/10 to-red-500/10",
-    accent: "text-orange-400",
-    border: "border-orange-500/20",
-  },
-  {
-    name: "Afar Region",
-    badge: "Arid Climate",
-    tag: "Scale Potential",
-    description:
-      "Arid and semi-arid lands with significant livestock populations. Strong need for drought prediction and veterinary traceability.",
-    color: "from-yellow-500/10 to-orange-500/10",
-    accent: "text-yellow-400",
-    border: "border-yellow-500/20",
-  },
-  {
-    name: "Somali Region",
-    badge: "Financial Inclusion",
-    tag: "Mobile First",
-    description:
-      "Large pastoralist communities with limited financial inclusion. Ideal for testing insurance and credit linkage models.",
-    color: "from-green-500/10 to-emerald-500/10",
-    accent: "text-emerald-400",
-    border: "border-emerald-500/20",
-  },
-];
+import { getPublicRegions } from "@/lib/queries";
 
-export function RegionsSection() {
+const blurbs: Record<string, string> = {
+  Borena: "Recurrent severe drought has caused heavy cattle losses. Highest urgency for early warning, water planning and restocking finance.",
+  "Afar Zone 1 (Awsi Rasu)": "Arid lowlands along the Awash with large goat and camel herds. Strong need for drought prediction and veterinary traceability.",
+  Shabelle: "Riverine and pastoral communities with limited access to finance. Ideal for testing insurance and credit linkage.",
+};
+
+const tone = {
+  critical: "text-danger bg-danger-soft ring-danger/20",
+  high: "text-warning bg-warning-soft ring-warning/20",
+  medium: "text-accent bg-accent-soft ring-accent/20",
+  low: "text-success bg-success-soft ring-success/20",
+} as const;
+
+export async function RegionsSection() {
+  const regions = await getPublicRegions();
+  const pilots = regions.filter((r) => blurbs[r.name]);
+
   return (
     <section className="py-20 sm:py-28">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="max-w-2xl mb-14">
-          <span className="text-sm font-semibold text-primary uppercase tracking-wider">
-            Target Regions
-          </span>
-          <h2 className="mt-3 text-3xl sm:text-4xl font-bold text-foreground tracking-tight">
-            Where we're piloting
-          </h2>
-          <p className="mt-4 text-muted leading-relaxed">
-            Strategic pilot regions for initial deployment and community engagement
-            (2026–2027).
+        <div className="mb-14 max-w-2xl">
+          <span className="text-sm font-semibold uppercase tracking-wider text-primary">Target regions</span>
+          <h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">Where we&apos;re piloting</h2>
+          <p className="mt-4 leading-relaxed text-muted">
+            Priority pilot zones for 2026–2027, with drought conditions and enrolment figures shown live from the platform.
           </p>
         </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {regions.map((region) => (
-            <div
-              key={region.name}
-              className={`relative overflow-hidden rounded-xl border bg-card p-6 hover:bg-card-hover transition-colors ${region.border}`}
-            >
-              <div
-                className={`absolute inset-0 bg-gradient-to-br ${region.color} opacity-50`}
-              />
-              <div className="relative">
-                <div className="flex items-center justify-between mb-4">
-                  <span
-                    className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium bg-background/80 border ${region.border} ${region.accent}`}
-                  >
-                    {region.badge}
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+          {(pilots.length ? pilots : Object.keys(blurbs).map((name) => ({ name, admin_region: "", drought_risk: null, drought_index: null, total_farmers: null, total_animals: null, livelihood: "" }))).map((r) => (
+            <div key={r.name} className="card p-6 transition-colors hover:border-border-strong">
+              <div className="mb-4 flex items-center justify-between">
+                {r.drought_risk ? (
+                  <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize ring-1 ring-inset ${tone[r.drought_risk]}`}>
+                    {r.drought_risk} drought · {r.drought_index}
                   </span>
-                  <span className="text-xs text-muted">{region.tag}</span>
-                </div>
-                <h3 className="text-xl font-bold text-foreground mb-3">
-                  {region.name}
-                </h3>
-                <p className="text-sm text-muted leading-relaxed">
-                  {region.description}
-                </p>
+                ) : <span />}
+                <span className="text-xs text-muted">{r.admin_region}</span>
               </div>
+              <h3 className="mb-3 text-xl font-semibold">{r.name}</h3>
+              <p className="text-sm leading-relaxed text-muted">{blurbs[r.name]}</p>
+              {r.total_farmers !== null && (
+                <div className="mt-5 flex gap-6 border-t border-border pt-4 text-sm">
+                  <div><div className="font-semibold tabular-nums">{r.total_farmers}</div><div className="text-xs text-muted">households</div></div>
+                  <div><div className="font-semibold tabular-nums">{r.total_animals}</div><div className="text-xs text-muted">tagged animals</div></div>
+                </div>
+              )}
             </div>
           ))}
         </div>

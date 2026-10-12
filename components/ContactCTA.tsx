@@ -14,8 +14,8 @@ export function ContactCTA() {
               Partner with us
             </h2>
             <p className="mt-4 text-muted leading-relaxed">
-              Whether you're a government agency, NGO, insurer or veterinary
-              clinic, we'd love to explore how Mobile Vet can work for your
+              Whether you&apos;re a government agency, NGO, insurer or veterinary
+              clinic, we&apos;d love to explore how Mobile Vet can work for your
               communities.
             </p>
 
@@ -28,7 +28,7 @@ export function ContactCTA() {
 
             <Link
               href="/contact"
-              className="inline-flex items-center gap-2 mt-6 rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-background hover:bg-primary-hover transition-colors"
+              className="inline-flex items-center gap-2 mt-6 rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-white hover:bg-primary-hover transition-colors"
             >
               Start the conversation
               <ArrowRight className="h-4 w-4" />

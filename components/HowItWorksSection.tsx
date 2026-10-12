@@ -58,7 +58,7 @@ export function HowItWorksSection() {
 
               <div className="rounded-xl border border-border bg-card p-6 hover:bg-card-hover transition-colors h-full">
                 <div className="flex items-center gap-3 mb-4">
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-background text-sm font-bold">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white text-sm font-bold">
                     {step.number}
                   </span>
                   <div className="rounded-lg bg-background p-2">

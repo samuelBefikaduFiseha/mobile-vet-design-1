@@ -73,7 +73,7 @@ export function Footer() {
 
         <div className="mt-10 pt-6 border-t border-sidebar-hover flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-xs text-sidebar-muted">
-            © 2026 Mobile Vet. Built for Ethiopian pastoralist resilience.
+            © 2026 Mobile Vet. Built for Ethiopian pastoralist resilience. · <Link href="/credits" className="underline-offset-2 hover:text-white hover:underline">Photo credits</Link>
           </p>
           <div className="flex gap-4 text-xs text-sidebar-muted">
             <span>Satellite & QGIS</span>

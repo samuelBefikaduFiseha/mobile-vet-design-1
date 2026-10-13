@@ -1,13 +1,15 @@
 import Link from "next/link";
 import { ArrowRight, Satellite, Radio, Tag, Home, CloudRain } from "lucide-react";
+import { PhotoBackdrop } from "@/components/PhotoBackdrop";
+import { sitePhotos } from "@/lib/photo-credits";
 import { getPublicRegions } from "@/lib/queries";
 
 export async function HeroSection() {
   const regions = (await getPublicRegions()).slice(0, 4);
 
   return (
-    <section className="relative overflow-hidden">
-      <div className="absolute inset-0 bg-[radial-gradient(70%_60%_at_85%_0%,var(--primary-soft)_0%,transparent_70%),radial-gradient(50%_50%_at_0%_100%,var(--accent-soft)_0%,transparent_70%)]" />
+    <section className="relative isolate overflow-hidden">
+      <PhotoBackdrop photo={sitePhotos.heroCattle} priority position="center 65%" />
       <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-4 pb-20 pt-16 sm:px-6 sm:pt-24 lg:grid-cols-[1.15fr_1fr] lg:px-8">
         <div>
           <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-xs font-medium text-primary shadow-sm">
@@ -33,7 +35,7 @@ export async function HeroSection() {
         </div>
 
         {/* Live snapshot from the platform database */}
-        <div className="card relative p-5 shadow-xl shadow-[#17251d]/5">
+        <div className="card relative bg-card/95 p-5 shadow-xl shadow-[#17251d]/15 backdrop-blur">
           <div className="mb-4 flex items-center justify-between">
             <div>
               <div className="text-xs font-medium text-muted">Live drought watch</div>

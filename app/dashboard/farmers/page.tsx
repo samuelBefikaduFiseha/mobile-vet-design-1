@@ -7,7 +7,7 @@ import { deleteFarmer, saveFarmer } from "@/lib/actions";
 import { compactETB, formatDate, readParams, toOptions, type SearchParams } from "@/lib/utils";
 import { ActionButton, FilterBar, FormDialog } from "@/components/client";
 import { FarmerFields } from "@/components/forms";
-import { Badge, EmptyState, Page, PageHeader, RiskBadge, StatCard, TableShell } from "@/components/ui";
+import { Avatar, Badge, EmptyState, Page, PageHeader, RiskBadge, StatCard, TableShell } from "@/components/ui";
 
 export default async function FarmersPage({ searchParams }: { searchParams: SearchParams }) {
   const user = await requireUser(can.viewFarmers);
@@ -73,8 +73,13 @@ export default async function FarmersPage({ searchParams }: { searchParams: Sear
           {farmers.map((f) => (
             <tr key={f.id} className="hover:bg-card-hover">
               <td className="td">
-                <Link href={`/dashboard/farmers/${f.id}`} className="font-medium text-foreground hover:text-primary">{f.full_name}</Link>
-                <div className="mt-0.5 flex items-center gap-1 text-xs text-muted"><span className="font-mono">{f.code}</span> · <Phone className="h-3 w-3" />{f.phone}</div>
+                <div className="flex items-center gap-3">
+                  <Avatar photoId={f.photo_id} name={f.full_name} />
+                  <div>
+                    <Link href={`/dashboard/farmers/${f.id}`} className="font-medium text-foreground hover:text-primary">{f.full_name}</Link>
+                    <div className="mt-0.5 flex items-center gap-1 text-xs text-muted"><span className="font-mono">{f.code}</span> · <Phone className="h-3 w-3" />{f.phone}</div>
+                  </div>
+                </div>
               </td>
               <td className="td">
                 <div className="flex items-center gap-1 text-sm"><MapPin className="h-3.5 w-3.5 text-subtle" />{f.woreda}, {f.kebele}</div>

@@ -7,7 +7,7 @@ import { deleteAnimal, saveAnimal } from "@/lib/actions";
 import { ageFrom, formatDate, readParams, speciesLabel, toOptions, type SearchParams } from "@/lib/utils";
 import { ActionButton, FilterBar, FormDialog } from "@/components/client";
 import { AnimalFields } from "@/components/forms";
-import { EmptyState, Page, PageHeader, StatCard, StatusBadge, TableShell } from "@/components/ui";
+import { AnimalThumb, EmptyState, Page, PageHeader, StatCard, StatusBadge, TableShell } from "@/components/ui";
 
 export default async function LivestockPage({ searchParams }: { searchParams: SearchParams }) {
   const user = await requireUser(can.viewLivestock);
@@ -60,8 +60,13 @@ export default async function LivestockPage({ searchParams }: { searchParams: Se
           {animals.map((a) => (
             <tr key={a.id} className="hover:bg-card-hover">
               <td className="td">
-                <Link href={`/dashboard/livestock/${a.id}`} className="font-mono text-xs font-semibold text-primary hover:underline">{a.tag_number}</Link>
-                <div className="font-mono text-[11px] text-subtle">{a.rfid}</div>
+                <div className="flex items-center gap-3">
+                  <Link href={`/dashboard/livestock/${a.id}`} aria-label={`Open ${a.tag_number}`}><AnimalThumb id={a.photo_ids[0]} size="md" /></Link>
+                  <div>
+                    <Link href={`/dashboard/livestock/${a.id}`} className="font-mono text-xs font-semibold text-primary hover:underline">{a.tag_number}</Link>
+                    <div className="font-mono text-[11px] text-subtle">{a.rfid}</div>
+                  </div>
+                </div>
               </td>
               <td className="td">
                 <div className="font-medium">{speciesLabel(a.species)}</div>

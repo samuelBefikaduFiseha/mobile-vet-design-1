@@ -1,4 +1,6 @@
 import { getPublicRegions } from "@/lib/queries";
+import { PhotoBackdrop } from "@/components/PhotoBackdrop";
+import { sitePhotos } from "@/lib/photo-credits";
 
 const blurbs: Record<string, string> = {
   Borena: "Recurrent severe drought has caused heavy cattle losses. Highest urgency for early warning, water planning and restocking finance.",
@@ -18,7 +20,8 @@ export async function RegionsSection() {
   const pilots = regions.filter((r) => blurbs[r.name]);
 
   return (
-    <section className="py-20 sm:py-28">
+    <section className="relative isolate overflow-hidden py-20 sm:py-28">
+      <PhotoBackdrop photo={sitePhotos.caravan} tone="wash" position="center 70%" />
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-14 max-w-2xl">
           <span className="text-sm font-semibold uppercase tracking-wider text-primary">Target regions</span>

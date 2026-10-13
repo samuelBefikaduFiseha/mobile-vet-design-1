@@ -12,8 +12,9 @@ import {
 import { assessFarmer, createApplication, saveAnimal, saveFarmer, saveHealthRecord, saveVisit } from "@/lib/actions";
 import { ageFrom, capitalize, compactETB, formatDate, formatDateTime, formatETB, relativeDays, speciesLabel } from "@/lib/utils";
 import { ActionButton, FormDialog } from "@/components/client";
-import { AnimalFields, ApplicationFields, FarmerFields, HealthFields, VisitFields } from "@/components/forms";
-import { ApplicationBadge, Badge, Card, Detail, Page, RiskBadge, RiskMeter, StatusBadge } from "@/components/ui";
+import { AddPhotos, AnimalFields, ApplicationFields, FarmerFields, HealthFields, VisitFields } from "@/components/forms";
+import { AnimalThumb, ApplicationBadge, Avatar, Badge, Card, Detail, Page, RiskBadge, RiskMeter, StatusBadge } from "@/components/ui";
+import { PhotoGallery } from "@/components/photos";
 
 export default async function FarmerPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -46,7 +47,11 @@ export default async function FarmerPage({ params }: { params: Promise<{ id: str
       </Link>
 
       <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div>
+        <div className="flex items-center gap-4">
+          {farmer.photo_ids?.length
+            ? <PhotoGallery ids={farmer.photo_ids} size="avatar" canDelete={editFarmer} />
+            : <Avatar name={farmer.full_name} size="lg" />}
+          <div>
           <div className="flex flex-wrap items-center gap-2">
             <h1 className="text-2xl font-semibold tracking-tight">{farmer.full_name}</h1>
             <span className="font-mono text-xs text-muted">{farmer.code}</span>
@@ -58,9 +63,11 @@ export default async function FarmerPage({ params }: { params: Promise<{ id: str
             <span className="flex items-center gap-1"><MapPin className="h-3.5 w-3.5" />{farmer.kebele}, {farmer.woreda} · {farmer.region_name}</span>
             <span className="flex items-center gap-1"><Phone className="h-3.5 w-3.5" />{farmer.phone}</span>
           </div>
+          </div>
         </div>
         <div className="flex flex-wrap gap-2">
           {allowed(r, can.assessRisk) && <ActionButton action={assessFarmer.bind(null, id)} className="btn-secondary"><RefreshCw className="h-4 w-4" /> Re-assess risk</ActionButton>}
+          {editFarmer && <AddPhotos target="farmer" id={id} title={`Photos of ${farmer.full_name}`} />}
           {editFarmer && (
             <FormDialog action={saveFarmer} title="Edit farmer" triggerClassName="btn-secondary" trigger={<><Pencil className="h-4 w-4" /> Edit</>}>
               <FarmerFields farmer={farmer} regions={formRegions} workers={workers} user={user} />
@@ -81,6 +88,12 @@ export default async function FarmerPage({ params }: { params: Promise<{ id: str
               <Detail label="Last visit">{formatDate(farmer.last_visit_date)}</Detail>
             </dl>
             {farmer.notes && <p className="mt-4 rounded-lg bg-surface px-3 py-2.5 text-sm text-muted">{farmer.notes}</p>}
+            {(farmer.photo_ids?.length ?? 0) > 1 && (
+              <div className="mt-4 border-t border-border pt-3">
+                <div className="mb-2 text-xs font-medium text-muted">Photos ({farmer.photo_ids!.length})</div>
+                <PhotoGallery ids={farmer.photo_ids!} canDelete={editFarmer} />
+              </div>
+            )}
           </Card>
 
           <Card title="Risk assessment" description={latest ? `Model run ${formatDateTime(latest.assessed_at)} · ${Math.round(latest.confidence * 100)}% confidence` : undefined}>
@@ -133,7 +146,11 @@ export default async function FarmerPage({ params }: { params: Promise<{ id: str
                   <tbody className="divide-y divide-border">
                     {animals.map((a) => (
                       <tr key={a.id} className="hover:bg-card-hover">
-                        <td className="td"><Link href={`/dashboard/livestock/${a.id}`} className="font-mono text-xs font-medium text-primary hover:underline">{a.tag_number}</Link></td>
+                        <td className="td">
+                          <Link href={`/dashboard/livestock/${a.id}`} className="flex items-center gap-2 font-mono text-xs font-medium text-primary hover:underline">
+                            <AnimalThumb id={a.photo_ids[0]} />{a.tag_number}
+                          </Link>
+                        </td>
                         <td className="td">{speciesLabel(a.species)} <span className="text-xs text-muted">· {a.breed} · {a.sex}</span></td>
                         <td className="td whitespace-nowrap text-xs text-muted">{ageFrom(a.birth_date)} · {a.weight_kg} kg</td>
                         <td className="td"><StatusBadge status={a.health_status} /></td>
@@ -167,6 +184,7 @@ export default async function FarmerPage({ params }: { params: Promise<{ id: str
                     </div>
                     <div className="text-xs text-muted">{capitalize(h.type)} · <Link href={`/dashboard/livestock/${h.animal_id}`} className="font-mono hover:text-primary">{h.tag_number}</Link> · {formatDate(h.record_date)} · {h.recorded_by_name ?? "—"}</div>
                     {h.treatment && <div className="mt-1 text-xs text-foreground/80">{h.treatment}</div>}
+                    {h.photo_ids.length > 0 && <div className="mt-2"><PhotoGallery ids={h.photo_ids} size="sm" /></div>}
                   </div>
                 </div>
               ))}
@@ -190,6 +208,7 @@ export default async function FarmerPage({ params }: { params: Promise<{ id: str
                     </div>
                     <div className="mt-0.5 text-xs text-muted">{v.purpose} · {v.extension_worker_name ?? "—"}</div>
                     {v.observations && <p className="mt-1 text-xs text-foreground/80">{v.observations}</p>}
+                    {v.photo_ids.length > 0 && <div className="mt-2"><PhotoGallery ids={v.photo_ids} size="sm" /></div>}
                   </div>
                 ))}
               </Card>

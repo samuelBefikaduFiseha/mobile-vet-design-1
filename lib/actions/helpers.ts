@@ -1,6 +1,7 @@
 import "server-only";
 import { revalidatePath } from "next/cache";
 import { AuthError } from "../auth";
+import { PhotoError } from "../photos";
 import type { ActionState } from "../types";
 
 export class ValidationError extends Error {}
@@ -56,7 +57,7 @@ export async function run(fn: () => Promise<string | void>): Promise<ActionState
 }
 
 function friendly(err: unknown): string {
-  if (err instanceof ValidationError || err instanceof AuthError) return err.message;
+  if (err instanceof ValidationError || err instanceof AuthError || err instanceof PhotoError) return err.message;
   const e = err as { code?: string; constraint?: string; message?: string };
   if (e?.code === "23505") {
     if (e.constraint?.includes("tag_number")) return "That ear-tag number is already registered.";

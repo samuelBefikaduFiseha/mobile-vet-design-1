@@ -26,6 +26,12 @@ class Where {
 
 const like = (s: string) => `%${s.trim()}%`;
 
+/** Photo id columns, newest first (cast to text[] so pg returns plain string arrays). */
+const photoIds = (col: string, ref: string) =>
+  `ARRAY(SELECT p.id FROM photos p WHERE p.${col} = ${ref} ORDER BY p.created_at DESC)::text[] AS photo_ids`;
+const FARMER_COLS = `farmer_summary.*,
+  (SELECT p.id::text FROM photos p WHERE p.farmer_id = farmer_summary.id ORDER BY p.created_at DESC LIMIT 1) AS photo_id`;
+
 // ------------------------------------------------------------------ regions
 export function getRegions() {
   return query<Region>("SELECT * FROM region_summary ORDER BY id");
@@ -70,14 +76,14 @@ export function getFarmers(user: SessionUser, f: FarmerFilters = {}) {
   else if (f.credit === "none") w.add("NOT has_insurance AND active_loans = 0");
   if (f.health === "sick") w.add("sick_count > 0");
   else if (f.health === "unvisited") w.add("(last_visit_date IS NULL OR last_visit_date < CURRENT_DATE - 90)");
-  return query<Farmer>(`SELECT * FROM farmer_summary ${w.sql} ORDER BY ${FARMER_SORT[f.sort ?? ""] ?? FARMER_SORT.risk}`, w.params);
+  return query<Farmer>(`SELECT ${FARMER_COLS} FROM farmer_summary ${w.sql} ORDER BY ${FARMER_SORT[f.sort ?? ""] ?? FARMER_SORT.risk}`, w.params);
 }
 
 export async function getFarmer(user: SessionUser, id: string) {
   const w = new Where().add("id = ?", id);
   const scope = regionScope(user);
   if (scope) w.add("region_id = ?", scope);
-  return queryOne<Farmer>(`SELECT * FROM farmer_summary ${w.sql}`, w.params);
+  return queryOne<Farmer>(`SELECT ${FARMER_COLS}, ${photoIds("farmer_id", "farmer_summary.id")} FROM farmer_summary ${w.sql}`, w.params);
 }
 
 export function getFarmerOptions(user: SessionUser, regionId?: string | number | null) {
@@ -134,7 +140,8 @@ export async function getFilterOptions(user: SessionUser, p: { region?: string; 
 const ANIMAL_SELECT = `
   SELECT a.*, f.full_name AS farmer_name, f.code AS farmer_code, r.name AS region_name,
          (SELECT MAX(h.record_date) FROM health_records h WHERE h.animal_id = a.id AND h.type = 'vaccination') AS last_vaccination,
-         (SELECT COUNT(*) FROM health_records h WHERE h.animal_id = a.id)::int AS record_count
+         (SELECT COUNT(*) FROM health_records h WHERE h.animal_id = a.id)::int AS record_count,
+         ${photoIds("animal_id", "a.id")}
     FROM animals a
     JOIN farmers f ON f.id = a.farmer_id
     JOIN regions r ON r.id = f.region_id`;
@@ -189,7 +196,8 @@ export function getAnimalOptions(user: SessionUser, farmerId?: string, includeDe
 // ------------------------------------------------------------------ health records
 const HEALTH_SELECT = `
   SELECT h.*, a.tag_number, a.species, a.health_status AS animal_status,
-         f.id AS farmer_id, f.full_name AS farmer_name, r.name AS region_name, u.name AS recorded_by_name
+         f.id AS farmer_id, f.full_name AS farmer_name, r.name AS region_name, u.name AS recorded_by_name,
+         ${photoIds("health_record_id", "h.id")}
     FROM health_records h
     JOIN animals a ON a.id = h.animal_id
     JOIN farmers f ON f.id = a.farmer_id
@@ -224,7 +232,8 @@ export function getHealthRecords(user: SessionUser, f: HealthFilters = {}, limit
 
 // ------------------------------------------------------------------ visits
 const VISIT_SELECT = `
-  SELECT v.*, f.full_name AS farmer_name, f.code AS farmer_code, f.kebele, r.name AS region_name, u.name AS extension_worker_name
+  SELECT v.*, f.full_name AS farmer_name, f.code AS farmer_code, f.kebele, r.name AS region_name, u.name AS extension_worker_name,
+         ${photoIds("visit_id", "v.id")}
     FROM visits v
     JOIN farmers f ON f.id = v.farmer_id
     JOIN regions r ON r.id = f.region_id

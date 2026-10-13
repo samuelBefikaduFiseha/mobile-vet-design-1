@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import { PawPrint, Satellite, ShieldCheck, Smartphone } from "lucide-react";
 import { getCurrentUser } from "@/lib/auth";
 import { LoginForm } from "./login-form";
+import { PhotoBackdrop } from "@/components/PhotoBackdrop";
+import { sitePhotos } from "@/lib/photo-credits";
 
 export const metadata = { title: "Sign in | Mobile Vet" };
 
@@ -12,8 +14,8 @@ export default async function LoginPage() {
 
   return (
     <div className="grid min-h-screen lg:grid-cols-[1.1fr_1fr]">
-      <aside className="relative hidden overflow-hidden bg-sidebar-bg p-12 text-sidebar-text lg:flex lg:flex-col">
-        <div className="absolute inset-0 opacity-40 [background:radial-gradient(60%_50%_at_80%_10%,#2e8a5c_0%,transparent_60%),radial-gradient(50%_40%_at_10%_90%,#b97a1f_0%,transparent_60%)]" />
+      <aside className="relative isolate hidden overflow-hidden bg-sidebar-bg p-12 text-sidebar-text lg:flex lg:flex-col">
+        <PhotoBackdrop photo={sitePhotos.herders} tone="green" position="center 55%" priority />
         <Link href="/" className="relative flex items-center gap-2.5">
           <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-[#2e8a5c] text-white"><PawPrint className="h-5 w-5" /></span>
           <span className="text-lg font-semibold text-white">Mobile Vet</span>
@@ -22,7 +24,7 @@ export default async function LoginPage() {
           <h1 className="text-3xl font-semibold leading-tight tracking-tight text-white">
             One record for every animal, from the kebele to the bank.
           </h1>
-          <p className="mt-4 text-sm leading-relaxed text-sidebar-muted">
+          <p className="mt-4 text-sm leading-relaxed text-white/80">
             Extension workers, lenders, insurers and government teams work from the same live herd, health and climate data.
           </p>
           <ul className="mt-8 space-y-3 text-sm">
@@ -32,7 +34,7 @@ export default async function LoginPage() {
               { icon: Smartphone, text: "Field data captured by extension workers on the ground" },
             ].map((f) => (
               <li key={f.text} className="flex items-center gap-3">
-                <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-white/10"><f.icon className="h-4 w-4 text-[#8fd3ab]" /></span>
+                <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-white/15 backdrop-blur"><f.icon className="h-4 w-4 text-[#8fd3ab]" /></span>
                 {f.text}
               </li>
             ))}

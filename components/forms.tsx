@@ -1,5 +1,8 @@
 // Field sets for each entity's create/edit form. Rendered inside <FormDialog>.
-import { Field, RegionWoredaFields } from "./client";
+import { ImagePlus } from "lucide-react";
+import { Field, FormDialog, RegionWoredaFields } from "./client";
+import { addPhotos } from "@/lib/actions";
+import { PhotoInput } from "./photos";
 import { todayISO } from "@/lib/utils";
 import type {
   Animal, AnimalOption, Farmer, FarmerOption, HealthRecord, RegionOption, SessionUser, User, Visit,
@@ -30,6 +33,8 @@ export function FarmerFields({ farmer, regions, workers, user }: {
         </select>
       </Field>
       <Field label="Notes" full><textarea name="notes" rows={3} defaultValue={farmer?.notes} className="input resize-none" placeholder="Household situation, needs, observations…" /></Field>
+      <PhotoInput label={farmer?.photo_id ? "Add more photos (the newest is used as the profile photo)" : "Farmer photo"} max={3}
+        hint="A clear face photo helps field teams and partners identify the household." />
     </>
   );
 }
@@ -61,6 +66,8 @@ export function AnimalFields({ animal, farmers, farmerId }: { animal?: Animal; f
       </Field>
       <Field label="Last seen"><input name="last_seen" type="date" max={todayISO()} defaultValue={animal?.last_seen ?? todayISO()} className="input" /></Field>
       <Field label="Location" full><input name="location" defaultValue={animal?.location} className="input" placeholder="Woreda – grazing site / watering point" /></Field>
+      <PhotoInput label={animal?.photo_ids.length ? `Add more photos (${animal.photo_ids.length} saved)` : "Animal photos"}
+        hint="Side view and ear tag help verify the animal for loans and insurance claims." />
     </>
   );
 }
@@ -93,6 +100,8 @@ export function HealthFields({ record, animals, animalId }: { record?: HealthRec
         </select>
       </Field>
       <Field label="Notes" full><textarea name="notes" rows={2} defaultValue={record?.notes} className="input resize-none" /></Field>
+      <PhotoInput label={record?.photo_ids.length ? `Add more photos (${record.photo_ids.length} saved)` : "Clinical photos"}
+        hint="Lesions, wounds or the affected area — useful for vets and insurance claims." />
     </>
   );
 }
@@ -125,6 +134,8 @@ export function VisitFields({ visit, farmers, farmerId, workers, user }: {
       <Field label="Purpose" full><input name="purpose" required defaultValue={visit?.purpose} className="input" placeholder="e.g. Routine herd health check" /></Field>
       <Field label="Observations" full hint="Required when marking a visit completed."><textarea name="observations" rows={3} defaultValue={visit?.observations} className="input resize-none" /></Field>
       <Field label="Recommendations" full><textarea name="recommendations" rows={2} defaultValue={visit?.recommendations} className="input resize-none" /></Field>
+      <PhotoInput label={visit?.photo_ids.length ? `Add more photos (${visit.photo_ids.length} saved)` : "Visit photos"}
+        hint="Herd condition, pasture, water point or documents seen during the visit." />
     </>
   );
 }
@@ -184,5 +195,20 @@ export function UserFields({ u, regions }: { u?: User; regions: RegionOption[] }
         <input name="password" type="password" required={!u} minLength={6} autoComplete="new-password" className="input" />
       </Field>
     </>
+  );
+}
+
+/** "Add photos" button + dialog for an existing farmer, animal, health record or visit. */
+export function AddPhotos({ target, id, title = "Add photos", compact }: {
+  target: "farmer" | "animal" | "health_record" | "visit"; id: string; title?: string; compact?: boolean;
+}) {
+  return (
+    <FormDialog action={addPhotos} title={title} submitLabel="Upload" maxWidth="max-w-lg"
+      triggerClassName={compact ? "btn-ghost -my-1 px-2 py-1 text-xs" : "btn-secondary"}
+      trigger={<><ImagePlus className={compact ? "h-3.5 w-3.5" : "h-4 w-4"} /> Photos</>}>
+      <input type="hidden" name="target" value={target} />
+      <input type="hidden" name="target_id" value={id} />
+      <PhotoInput label="Choose photos" />
+    </FormDialog>
   );
 }

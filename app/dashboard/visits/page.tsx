@@ -7,6 +7,7 @@ import { deleteVisit, saveVisit } from "@/lib/actions";
 import { formatDate, isoDaysFromToday, readParams, relativeDays, todayISO, toOptions, type SearchParams } from "@/lib/utils";
 import { ActionButton, FilterBar, FormDialog } from "@/components/client";
 import { VisitFields } from "@/components/forms";
+import { PhotoGallery } from "@/components/photos";
 import { EmptyState, Page, PageHeader, StatCard, StatusBadge, TableShell } from "@/components/ui";
 
 export default async function VisitsPage({ searchParams }: { searchParams: SearchParams }) {
@@ -75,6 +76,7 @@ export default async function VisitsPage({ searchParams }: { searchParams: Searc
                 <div className="font-medium">{v.purpose}</div>
                 {v.observations && <div className="mt-0.5 text-xs text-muted">{v.observations}</div>}
                 {v.recommendations && <div className="mt-0.5 text-xs text-foreground/80"><span className="font-medium">→</span> {v.recommendations}</div>}
+                {v.photo_ids.length > 0 && <div className="mt-1.5"><PhotoGallery ids={v.photo_ids} size="sm" canDelete={editable} /></div>}
               </td>
               <td className="td whitespace-nowrap text-xs text-muted">{v.extension_worker_name ?? "—"}</td>
               <td className="td"><StatusBadge status={v.status} /></td>

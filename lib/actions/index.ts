@@ -7,6 +7,7 @@ import { authorize, createSession, destroySession, regionScope, verifyCredential
 import { can } from "../permissions";
 import type { ActionState, SessionUser } from "../types";
 import { date, num, oneOf, run, str, ValidationError } from "./helpers";
+import { assertPhotoEdit, isPhotoTarget, photoOwner, readPhotos, storePhotos } from "../photos";
 
 const SPECIES = ["cattle", "goat", "sheep", "camel", "donkey"] as const;
 const HEALTH = ["healthy", "sick", "recovered", "deceased", "missing"] as const;
@@ -61,6 +62,7 @@ export async function saveFarmer(_prev: ActionState, fd: FormData): Promise<Acti
     if (scope && regionId !== scope) throw new AuthError("You can only register farmers in your own region.");
     const phone = str(fd, "phone", { required: true, max: 20 });
     if (!/^\+?[0-9 ]{9,15}$/.test(phone)) throw new ValidationError("Enter a valid phone number, e.g. +251911234567.");
+    const photos = await readPhotos(fd);
     const values = [
       str(fd, "full_name", { required: true, max: 120 }),
       oneOf(fd, "gender", ["male", "female"] as const),
@@ -79,12 +81,14 @@ export async function saveFarmer(_prev: ActionState, fd: FormData): Promise<Acti
         `UPDATE farmers SET full_name=$1, gender=$2, phone=$3, region_id=$4, woreda=$5, kebele=$6,
                 household_size=$7, years_herding=$8, extension_worker_id=$9, notes=$10, updated_at=NOW()
           WHERE id=$11`, [...values, id]);
+      await storePhotos("farmer", id, photos, user.id);
       await query("SELECT assess_farmer_risk($1, $2)", [id, user.id]);
       return "Farmer updated.";
     }
     const row = await queryOne<{ id: string }>(
       `INSERT INTO farmers (full_name, gender, phone, region_id, woreda, kebele, household_size, years_herding, extension_worker_id, notes)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING id`, values);
+    await storePhotos("farmer", row!.id, photos, user.id);
     await query("SELECT assess_farmer_risk($1, $2)", [row!.id, user.id]);
     return "Farmer registered and risk-scored.";
   });
@@ -106,6 +110,7 @@ export async function saveAnimal(_prev: ActionState, fd: FormData): Promise<Acti
     const id = str(fd, "id");
     const farmerId = str(fd, "farmer_id", { required: true });
     await assertFarmerAccess(user, farmerId);
+    const photos = await readPhotos(fd);
     const values = [
       farmerId,
       str(fd, "tag_number", { required: true, max: 30 }).toUpperCase(),
@@ -128,10 +133,12 @@ export async function saveAnimal(_prev: ActionState, fd: FormData): Promise<Acti
                 color=$8, weight_kg=$9, health_status=$10, location=$11, last_seen=$12, updated_at=NOW()
           WHERE id=$13`, [...values, id]);
       if (oldFarmer !== farmerId) await query("SELECT assess_farmer_risk($1, $2)", [oldFarmer, user.id]);
+      await storePhotos("animal", id, photos, user.id);
     } else {
-      await query(
+      const row = await queryOne<{ id: string }>(
         `INSERT INTO animals (farmer_id, tag_number, rfid, species, breed, sex, birth_date, color, weight_kg, health_status, location, last_seen)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`, values);
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING id`, values);
+      await storePhotos("animal", row!.id, photos, user.id);
     }
     await query("SELECT assess_farmer_risk($1, $2)", [farmerId, user.id]);
     return id ? "Animal updated." : "Animal registered.";
@@ -158,6 +165,7 @@ export async function saveHealthRecord(_prev: ActionState, fd: FormData): Promis
     const farmerId = await farmerOfAnimal(animalId);
     await assertFarmerAccess(user, farmerId);
     const type = oneOf(fd, "type", RECORD_TYPES);
+    const photos = await readPhotos(fd);
     const values = [
       animalId,
       date(fd, "record_date", { required: true }),
@@ -172,15 +180,18 @@ export async function saveHealthRecord(_prev: ActionState, fd: FormData): Promis
     // Optionally update the animal's status in the same step (e.g. mark sick / recovered).
     const newStatus = str(fd, "animal_status");
     await transaction(async (c) => {
+      let recordId = id;
       if (id) {
         await c.query(
           `UPDATE health_records SET animal_id=$1, record_date=$2, type=$3, symptoms=$4, diagnosis=$5, treatment=$6,
                   notes=$7, severity=$8, follow_up_date=$9 WHERE id=$10`, [...values, id]);
       } else {
-        await c.query(
+        const res = await c.query<{ id: string }>(
           `INSERT INTO health_records (animal_id, record_date, type, symptoms, diagnosis, treatment, notes, severity, follow_up_date, recorded_by)
-           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`, [...values, user.id]);
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING id`, [...values, user.id]);
+        recordId = res.rows[0].id;
       }
+      await storePhotos("health_record", recordId, photos, user.id, c);
       if (newStatus) {
         if (!HEALTH.includes(newStatus as (typeof HEALTH)[number])) throw new ValidationError("Choose a valid animal status.");
         await c.query("UPDATE animals SET health_status=$1, last_seen=GREATEST(last_seen, $2::date), updated_at=NOW() WHERE id=$3",
@@ -212,6 +223,7 @@ export async function saveVisit(_prev: ActionState, fd: FormData): Promise<Actio
     const farmerId = str(fd, "farmer_id", { required: true });
     await assertFarmerAccess(user, farmerId);
     const status = oneOf(fd, "status", ["scheduled", "completed", "cancelled"] as const);
+    const photos = await readPhotos(fd);
     const values = [
       farmerId,
       str(fd, "extension_worker_id") || user.id,
@@ -227,10 +239,12 @@ export async function saveVisit(_prev: ActionState, fd: FormData): Promise<Actio
       await query(
         `UPDATE visits SET farmer_id=$1, extension_worker_id=$2, visit_date=$3, purpose=$4, observations=$5,
                 recommendations=$6, next_visit_date=$7, status=$8, updated_at=NOW() WHERE id=$9`, [...values, id]);
+      await storePhotos("visit", id, photos, user.id);
     } else {
-      await query(
+      const row = await queryOne<{ id: string }>(
         `INSERT INTO visits (farmer_id, extension_worker_id, visit_date, purpose, observations, recommendations, next_visit_date, status)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`, values);
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id`, values);
+      await storePhotos("visit", row!.id, photos, user.id);
     }
     // A completed visit with a next date automatically books the follow-up visit.
     const next = values[6] as string | null;
@@ -434,6 +448,33 @@ export async function saveUser(_prev: ActionState, fd: FormData): Promise<Action
       `INSERT INTO users (name, email, role, organization, region_id, phone, status, password_hash)
        VALUES ($1,$2,$3,$4,$5,$6,$7, crypt($8, gen_salt('bf', 8)))`, [...values, password]);
     return "User created.";
+  });
+}
+
+// ================================================================== photos
+/** Adds photos to an existing farmer, animal, health record or visit. */
+export async function addPhotos(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  return run(async () => {
+    const user = await authorize();
+    const target = str(fd, "target", { required: true });
+    const id = str(fd, "target_id", { required: true });
+    if (!isPhotoTarget(target)) throw new ValidationError("Unknown record type.");
+    await assertPhotoEdit(user, target, id);
+    const photos = await readPhotos(fd);
+    if (!photos.length) throw new ValidationError("Choose at least one photo.");
+    const n = await storePhotos(target, id, photos, user.id);
+    return `${n} photo${n === 1 ? "" : "s"} added.`;
+  });
+}
+
+export async function deletePhoto(id: string): Promise<ActionState> {
+  return run(async () => {
+    const user = await authorize();
+    const owner = await photoOwner(id);
+    if (!owner) throw new ValidationError("Photo not found.");
+    await assertPhotoEdit(user, owner.target, owner.id);
+    await query("DELETE FROM photos WHERE id = $1", [id]);
+    return "Photo deleted.";
   });
 }
 

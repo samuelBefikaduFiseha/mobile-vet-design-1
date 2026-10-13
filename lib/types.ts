@@ -96,6 +96,10 @@ export interface Farmer {
   repaid_loans: number;
   open_requests: number;
   last_visit_date: string | null;
+  /** Latest farmer photo (avatar). */
+  photo_id: string | null;
+  /** All farmer photos — only loaded on the profile page. */
+  photo_ids?: string[];
 }
 
 export interface FarmerOption {
@@ -125,6 +129,7 @@ export interface Animal {
   registered_at: string;
   last_vaccination: string | null;
   record_count: number;
+  photo_ids: string[];
 }
 
 export interface AnimalOption {
@@ -154,6 +159,7 @@ export interface HealthRecord {
   notes: string;
   severity: Severity;
   follow_up_date: string | null;
+  photo_ids: string[];
 }
 
 export interface Visit {
@@ -171,6 +177,7 @@ export interface Visit {
   recommendations: string;
   next_visit_date: string | null;
   status: VisitStatus;
+  photo_ids: string[];
 }
 
 export interface Application {

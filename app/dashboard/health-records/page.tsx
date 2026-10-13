@@ -7,6 +7,7 @@ import { deleteHealthRecord, saveHealthRecord } from "@/lib/actions";
 import { capitalize, formatDate, isoDaysFromToday, readParams, relativeDays, speciesLabel, todayISO, toOptions, type SearchParams } from "@/lib/utils";
 import { ActionButton, FilterBar, FormDialog } from "@/components/client";
 import { HealthFields } from "@/components/forms";
+import { PhotoGallery } from "@/components/photos";
 import { Badge, EmptyState, Page, PageHeader, StatCard, StatusBadge, TableShell } from "@/components/ui";
 
 export default async function HealthRecordsPage({ searchParams }: { searchParams: SearchParams }) {
@@ -66,6 +67,7 @@ export default async function HealthRecordsPage({ searchParams }: { searchParams
               <td className="td min-w-56">
                 <div className="font-medium">{h.diagnosis}</div>
                 <div className="text-xs text-muted">{capitalize(h.type)}{h.symptoms && ` · ${h.symptoms}`}</div>
+                {h.photo_ids.length > 0 && <div className="mt-1.5"><PhotoGallery ids={h.photo_ids} size="sm" canDelete={editable} /></div>}
               </td>
               <td className="td max-w-64 text-xs text-muted">{h.treatment}</td>
               <td className="td"><StatusBadge status={h.severity} /></td>

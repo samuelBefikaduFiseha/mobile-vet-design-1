@@ -4,14 +4,16 @@ import {
   MapPin,
   Clock,
 } from "lucide-react";
+import { PhotoBackdrop } from "@/components/PhotoBackdrop";
+import { sitePhotos } from "@/lib/photo-credits";
 import { ContactForm } from "./contact-form";
 
 export default function ContactPage() {
   return (
     <div>
       {/* Hero */}
-      <section className="relative overflow-hidden py-20 sm:py-28">
-        <div className="absolute inset-0 bg-[radial-gradient(70%_60%_at_85%_0%,var(--primary-soft)_0%,transparent_70%),radial-gradient(50%_50%_at_0%_100%,var(--accent-soft)_0%,transparent_70%)]" />
+      <section className="relative isolate overflow-hidden py-20 sm:py-28">
+        <PhotoBackdrop photo={sitePhotos.camels} priority position="center 35%" />
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl">
             <span className="text-sm font-semibold text-primary uppercase tracking-wider">

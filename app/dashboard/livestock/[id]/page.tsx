@@ -7,7 +7,8 @@ import { getAnimal, getAnimalOptions, getFarmerOptions, getHealthRecords } from 
 import { saveAnimal, saveHealthRecord } from "@/lib/actions";
 import { ageFrom, capitalize, formatDate, relativeDays, speciesLabel } from "@/lib/utils";
 import { FormDialog } from "@/components/client";
-import { AnimalFields, HealthFields } from "@/components/forms";
+import { AddPhotos, AnimalFields, HealthFields } from "@/components/forms";
+import { PhotoGallery } from "@/components/photos";
 import { Card, Detail, Page, StatusBadge } from "@/components/ui";
 
 const typeIcon = { vaccination: Syringe, disease: Bug, treatment: Pill, checkup: ClipboardCheck, deworming: Stethoscope, injury: Bandage };
@@ -40,6 +41,7 @@ export default async function AnimalPage({ params }: { params: Promise<{ id: str
         </div>
         {editable && (
           <div className="flex gap-2">
+            <AddPhotos target="animal" id={id} title={`Photos of ${animal.tag_number}`} />
             <FormDialog action={saveAnimal} title="Edit animal" triggerClassName="btn-secondary" trigger={<><Pencil className="h-4 w-4" /> Edit</>}>
               <AnimalFields animal={animal} farmers={farmers} />
             </FormDialog>
@@ -63,6 +65,9 @@ export default async function AnimalPage({ params }: { params: Promise<{ id: str
               <Detail label="Last seen">{formatDate(animal.last_seen)} <span className="text-xs font-normal text-muted">({relativeDays(animal.last_seen)})</span></Detail>
               <Detail label="Location">{animal.location || "—"}</Detail>
             </dl>
+          </Card>
+          <Card title={`Photos (${animal.photo_ids.length})`}>
+            <PhotoGallery ids={animal.photo_ids} canDelete={editable} empty={editable ? "No photos yet. Use “Photos” above to add some." : "No photos yet."} />
           </Card>
           <Card title="Vaccinations" description="From vaccination health records">
             {vaccinations.length === 0 ? <p className="text-sm text-muted">No vaccinations recorded.</p> : (
@@ -94,6 +99,7 @@ export default async function AnimalPage({ params }: { params: Promise<{ id: str
                     {h.symptoms && <p className="mt-1 text-sm text-muted"><span className="font-medium text-foreground">Signs:</span> {h.symptoms}</p>}
                     {h.treatment && <p className="mt-0.5 text-sm text-muted"><span className="font-medium text-foreground">Treatment:</span> {h.treatment}</p>}
                     {h.notes && <p className="mt-0.5 text-sm text-muted">{h.notes}</p>}
+                    {h.photo_ids.length > 0 && <div className="mt-2"><PhotoGallery ids={h.photo_ids} canDelete={editable} /></div>}
                     {h.follow_up_date && <p className="mt-1 text-xs font-medium text-warning">Follow-up {formatDate(h.follow_up_date)} ({relativeDays(h.follow_up_date)})</p>}
                   </li>
                 );

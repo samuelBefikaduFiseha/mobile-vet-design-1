@@ -10,7 +10,8 @@
     "db:up": "docker compose up -d --wait",
     "db:down": "docker compose down",
     "db:reset": "node scripts/generate-seed.mjs && docker compose down -v && docker compose up -d --wait",
-    "db:psql": "docker exec -it mobilevet-db psql -U mobilevet -d mobilevet"
+    "db:psql": "docker exec -it mobilevet-db psql -U mobilevet -d mobilevet",
+    "db:migrate": "node --env-file-if-exists=.env.local scripts/migrate.mjs"
   },
   "dependencies": {
     "framer-motion": "^12.40.0",

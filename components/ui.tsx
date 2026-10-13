@@ -173,3 +173,26 @@ export function ApplicationBadge({ type, status }: { type: "loan" | "insurance";
     : statusTone(status);
   return <Badge tone={tone}>{applicationStatusLabel(type, status)}</Badge>;
 }
+
+/** Farmer / animal avatar: the latest photo, or initials when there is none. */
+export function Avatar({ photoId, name, size = "md" }: { photoId?: string | null; name: string; size?: "sm" | "md" | "lg" }) {
+  const box = { sm: "h-8 w-8 text-[11px]", md: "h-10 w-10 text-xs", lg: "h-20 w-20 text-xl" }[size];
+  const letters = name.replace(/^Dr\.\s*/, "").split(/\s+/).slice(0, 2).map((p) => p[0]).join("").toUpperCase();
+  return photoId ? (
+    // eslint-disable-next-line @next/next/no-img-element -- served by our authenticated photo route
+    <img src={`/api/photos/${photoId}?size=thumb`} alt="" className={`${box} shrink-0 rounded-full border border-border object-cover`} />
+  ) : (
+    <span className={`${box} inline-flex shrink-0 items-center justify-center rounded-full bg-primary-soft font-semibold text-primary`}>{letters}</span>
+  );
+}
+
+/** Small square thumbnail for an animal (first photo), or a placeholder. */
+export function AnimalThumb({ id, size = "sm" }: { id?: string | null; size?: "sm" | "md" }) {
+  const box = size === "sm" ? "h-8 w-8 rounded-md" : "h-11 w-11 rounded-lg";
+  return id ? (
+    // eslint-disable-next-line @next/next/no-img-element -- served by our authenticated photo route
+    <img src={`/api/photos/${id}?size=thumb`} alt="" loading="lazy" className={`${box} shrink-0 border border-border object-cover`} />
+  ) : (
+    <span className={`${box} inline-block shrink-0 border border-dashed border-border bg-surface`} aria-hidden />
+  );
+}
